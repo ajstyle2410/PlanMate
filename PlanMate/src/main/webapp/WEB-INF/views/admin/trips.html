@@ -1,0 +1,116 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Trips - PlanMate</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 text-gray-900">
+<div class="min-h-screen">
+  <header class="bg-white shadow-sm">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+      <h1 class="text-2xl font-bold text-blue-700">Trip Management</h1>
+      <nav class="flex items-center space-x-4 text-sm font-medium">
+        <a href="/admin" class="hover:text-blue-600">Dashboard</a>
+        <a href="/admin/users" class="hover:text-blue-600">Users</a>
+        <a href="/admin/trips" class="text-blue-600">Trips</a>
+        <a href="/" class="rounded-md border border-blue-600 px-3 py-1 text-blue-600 hover:bg-blue-600 hover:text-white">Back to Site</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-6 py-8 space-y-8">
+    <section class="grid gap-4 sm:grid-cols-3">
+      <div class="rounded-xl bg-white p-5 shadow-sm">
+        <p class="text-xs uppercase tracking-wide text-gray-500">Draft</p>
+        <p class="mt-2 text-3xl font-semibold" th:text="${statusCounts.get(T(com.org.planmet.model.Trip$Status).DRAFT) != null ? statusCounts.get(T(com.org.planmet.model.Trip$Status).DRAFT) : 0}">0</p>
+      </div>
+      <div class="rounded-xl bg-white p-5 shadow-sm">
+        <p class="text-xs uppercase tracking-wide text-gray-500">Active</p>
+        <p class="mt-2 text-3xl font-semibold" th:text="${statusCounts.get(T(com.org.planmet.model.Trip$Status).ACTIVE) != null ? statusCounts.get(T(com.org.planmet.model.Trip$Status).ACTIVE) : 0}">0</p>
+      </div>
+      <div class="rounded-xl bg-white p-5 shadow-sm">
+        <p class="text-xs uppercase tracking-wide text-gray-500">Completed</p>
+        <p class="mt-2 text-3xl font-semibold" th:text="${statusCounts.get(T(com.org.planmet.model.Trip$Status).COMPLETED) != null ? statusCounts.get(T(com.org.planmet.model.Trip$Status).COMPLETED) : 0}">0</p>
+      </div>
+    </section>
+
+    <section class="rounded-xl bg-white p-6 shadow-sm">
+      <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 class="text-xl font-semibold text-blue-700">All Trips</h2>
+          <p class="text-sm text-gray-500" th:text="${trips.size()} + ' total records'">0 total records</p>
+        </div>
+        <div class="flex flex-col gap-2 sm:flex-row">
+          <input type="search" placeholder="Search by title or owner" oninput="filterTrips(event)" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200" />
+          <select onchange="filterByStatus(event)" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
+            <option value="">All statuses</option>
+            <option value="DRAFT">Draft</option>
+            <option value="ACTIVE">Active</option>
+            <option value="COMPLETED">Completed</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-6 overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200 text-sm" id="trips-table">
+          <thead class="bg-slate-50 text-xs uppercase tracking-wide text-gray-500">
+            <tr>
+              <th class="px-4 py-2 text-left">Title</th>
+              <th class="px-4 py-2 text-left">Owner</th>
+              <th class="px-4 py-2 text-left">Dates</th>
+              <th class="px-4 py-2 text-left">Budget</th>
+              <th class="px-4 py-2 text-left">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200" th:if="${#lists.isEmpty(trips)}">
+            <tr>
+              <td colspan="5" class="px-4 py-6 text-center text-sm text-gray-500">No trips available.</td>
+            </tr>
+          </tbody>
+          <tbody class="divide-y divide-slate-200" th:if="${!#lists.isEmpty(trips)}">
+            <tr th:each="trip : ${trips}" data-status="" th:attr="data-status=${trip.status.name()}">
+              <td class="px-4 py-3 font-medium text-gray-900" th:text="${trip.title}">Trip</td>
+              <td class="px-4 py-3" th:text="${trip.user != null ? trip.user.username : 'Unknown'}">Owner</td>
+              <td class="px-4 py-3 text-xs text-gray-500">
+                <span th:text="${trip.startDate != null ? #temporals.format(trip.startDate, 'dd MMM yyyy') : 'N/A'}">01 Jan 2025</span>
+                <span class="mx-1">-</span>
+                <span th:text="${trip.endDate != null ? #temporals.format(trip.endDate, 'dd MMM yyyy') : 'N/A'}">07 Jan 2025</span>
+              </td>
+              <td class="px-4 py-3" th:text="${trip.budget != null ? trip.budget : '--'}">--</td>
+              <td class="px-4 py-3">
+                <span class="rounded-full px-3 py-1 text-xs font-semibold" th:text="${trip.status}" th:classappend="${trip.status == T(com.org.planmet.model.Trip$Status).ACTIVE} ? 'bg-green-100 text-green-700' : (${trip.status == T(com.org.planmet.model.Trip$Status).DRAFT} ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700')">ACTIVE</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  function filterTrips(event) {
+    const term = event.target.value.toLowerCase();
+    document.querySelectorAll('#trips-table tbody:last-of-type tr').forEach(row => {
+      const text = row.innerText.toLowerCase();
+      row.style.display = text.includes(term) ? '' : 'none';
+    });
+  }
+
+  function filterByStatus(event) {
+    const value = event.target.value;
+    document.querySelectorAll('#trips-table tbody:last-of-type tr').forEach(row => {
+      if (!value) {
+        row.style.display = '';
+      } else {
+        row.style.display = row.getAttribute('data-status') === value ? '' : 'none';
+      }
+    });
+  }
+</script>
+</body>
+</html>
+
+

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Trip Planner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#f8f7ff] flex items-center justify-center min-h-screen">
+
+  <div class="flex w-full max-w-4xl bg-white shadow-lg rounded-2xl overflow-hidden">
+
+    <!-- Left Image/Info -->
+    <div class="hidden md:flex w-1/2 bg-[#003049] text-white items-center justify-center flex-col p-8">
+      <h1 class="text-3xl font-bold mb-4 animate-pulse">Welcome Back!</h1>
+      <p class="text-lg text-center">Login to join or explore amazing trips planned by others.</p>
+    </div>
+
+    <!-- Login Form -->
+    <div class="w-full md:w-1/2 p-8">
+      <h2 class="text-2xl font-bold text-[#012a4a] mb-6 animate-fadeIn">Login</h2>
+      <form th:action="@{/logindata}" th:object="${authRequest}" method="post" class="space-y-5">
+        <input type="text" th:field="*{username}" placeholder="Username or Email"
+               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#003049] transition transform hover:scale-105" required>
+
+        <input type="password" th:field="*{password}" placeholder="Password"
+               class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#003049] transition transform hover:scale-105" required>
+
+        <button type="submit"
+                class="w-full bg-[#003049] text-white py-2 rounded-lg font-semibold hover:bg-[#012a4a] transition transform hover:scale-105">
+          Login
+        </button>
+      </form>
+      <p class="mt-6 text-sm text-gray-600">Don't have an account?
+        <a href="/PlanMate/register" class="text-[#003049] font-semibold hover:underline">Register</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Tailwind Animations -->
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn { animation: fadeIn 0.8s ease-out forwards; }
+  </style>
+
+</body>
+</html>
+

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Create Trip</title>
+    <script>
+        function addDestinationField() {
+            const container = document.getElementById("destinations-container");
+            const input = document.createElement("input");
+            input.type = "text";
+            input.name = "destinations";  // must match field name in Trip
+            input.placeholder = "Enter destination";
+            input.classList.add("form-control", "mb-2");
+            container.appendChild(input);
+        }
+    </script>
+</head>
+<body>
+<h2>Create New Trip</h2>
+
+<form th:action="@{/trips/save}" th:object="${trip}" method="post">
+    <label>Trip Title:</label>
+    <input type="text" th:field="*{title}" class="form-control" required /><br>
+
+    <h4>Destinations:</h4>
+    <div id="destinations-container">
+        <!-- First input by default -->
+        <input type="text" name="destinations" placeholder="Enter destination" class="form-control mb-2"/>
+    </div>
+
+    <button type="button" onclick="addDestinationField()">+ Add Destination</button>
+    <br><br>
+
+    <button type="submit">Save Trip</button>
+</form>
+</body>
+</html>

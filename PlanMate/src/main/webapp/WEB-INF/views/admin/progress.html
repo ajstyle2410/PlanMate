@@ -1,0 +1,145 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Progress - PlanMate</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-100 text-gray-900">
+<div class="min-h-screen">
+  <header class="bg-white shadow-sm">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+      <h1 class="text-2xl font-bold text-blue-700">Progress Analytics</h1>
+      <nav class="flex items-center space-x-4 text-sm font-medium">
+        <a href="/admin" class="hover:text-blue-600">Dashboard</a>
+        <a href="/admin/users" class="hover:text-blue-600">Users</a>
+        <a href="/admin/trips" class="hover:text-blue-600">Trips</a>
+        <a href="/admin/progress" class="text-blue-600">Progress</a>
+        <a href="/" class="rounded-md border border-blue-600 px-3 py-1 text-blue-600 hover:bg-blue-600 hover:text-white">Back to Site</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-6 py-8 space-y-8">
+    <section class="grid gap-4 sm:grid-cols-3">
+      <div class="rounded-xl bg-white p-5 shadow-sm">
+        <p class="text-xs uppercase tracking-wide text-gray-500">Total Trips</p>
+        <p class="mt-2 text-3xl font-semibold" th:text="${totalTrips}">0</p>
+      </div>
+      <div class="rounded-xl bg-white p-5 shadow-sm">
+        <p class="text-xs uppercase tracking-wide text-gray-500">Tracked Months</p>
+        <p class="mt-2 text-3xl font-semibold" th:text="${monthLabels != null ? monthLabels.size() : 0}">0</p>
+      </div>
+      <div class="rounded-xl bg-white p-5 shadow-sm">
+        <p class="text-xs uppercase tracking-wide text-gray-500">Distinct Statuses</p>
+        <p class="mt-2 text-3xl font-semibold" th:text="${statusLabels != null ? statusLabels.size() : 0}">0</p>
+      </div>
+    </section>
+
+    <section class="grid gap-6 lg:grid-cols-2">
+      <div class="rounded-xl bg-white p-6 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-blue-700">Trips by Status</h2>
+          <span class="text-xs text-gray-500">Current distribution</span>
+        </div>
+        <canvas id="statusChart" class="mt-6"></canvas>
+      </div>
+      <div class="rounded-xl bg-white p-6 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-blue-700">Trips Created Over Time</h2>
+          <span class="text-xs text-gray-500">Based on start dates</span>
+        </div>
+        <canvas id="trendChart" class="mt-6"></canvas>
+      </div>
+    </section>
+
+    <section class="rounded-xl bg-white p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-blue-700">Data Snapshot</h2>
+      <div class="mt-4 overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200 text-sm">
+          <thead class="bg-slate-50 text-xs uppercase tracking-wide text-gray-500">
+            <tr>
+              <th class="px-4 py-2 text-left">Status</th>
+              <th class="px-4 py-2 text-left">Count</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200" th:if="${statusLabels == null || statusLabels.isEmpty()}">
+            <tr>
+              <td colspan="2" class="px-4 py-6 text-center text-sm text-gray-500">No trip data available yet.</td>
+            </tr>
+          </tbody>
+          <tbody class="divide-y divide-slate-200" th:if="${statusLabels != null && !statusLabels.isEmpty()}">
+            <tr th:each="label,iterStat : ${statusLabels}">
+              <td class="px-4 py-3 font-medium text-gray-900" th:text="${label}">STATUS</td>
+              <td class="px-4 py-3" th:text="${statusValues[iterStat.index]}">0</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script th:inline="javascript">
+const statusLabels = [[${statusLabels}]];
+const statusValues = [[${statusValues}]];
+const monthLabels = [[${monthLabels}]];
+const monthValues = [[${monthValues}]];
+
+  const statusCtx = document.getElementById('statusChart');
+  if (statusCtx && statusLabels.length > 0) {
+    new Chart(statusCtx, {
+      type: 'doughnut',
+      data: {
+        labels: statusLabels,
+        datasets: [{
+          data: statusValues,
+          backgroundColor: ['#facc15', '#22c55e', '#3b82f6', '#ef4444'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  }
+
+  const trendCtx = document.getElementById('trendChart');
+  if (trendCtx && monthLabels.length > 0) {
+    new Chart(trendCtx, {
+      type: 'line',
+      data: {
+        labels: monthLabels,
+        datasets: [{
+          label: 'Trips started',
+          data: monthValues,
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(37, 99, 235, 0.2)',
+          tension: 0.3,
+          borderWidth: 2,
+          fill: true
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            precision: 0,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        }
+      }
+    });
+  }
+</script>
+</body>
+</html>
+

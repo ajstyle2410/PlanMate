@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Dashboard - PlanMate</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#f8f7ff] text-gray-800">
+    <div th:insert="~{navbar}"></div>
+
+<div class="container mx-auto px-6 py-12">
+
+  <h1 class="text-3xl font-bold text-[#003049] mb-8">User Dashboard</h1>
+
+  <div th:if="${message}"
+       class="mb-6 rounded-md border px-4 py-3 text-sm font-medium"
+       th:classappend="${messageType == 'success'} ? 'border-green-200 bg-green-50 text-green-700' : (${messageType == 'error'} ? 'border-red-200 bg-red-50 text-red-700' : 'border-blue-200 bg-blue-50 text-blue-700')">
+    <span th:text="${message}">Status message</span>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <!-- User Profile Card -->
+    <div class="bg-white p-6 rounded-xl shadow-md lg:col-span-1">
+      <div class="flex items-center space-x-4">
+        <img src="https://ui-avatars.com/api/?name=User" alt="User Avatar" 
+             class="w-16 h-16 rounded-full shadow">
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900" th:text="${userProfile.fullname}">Full Name</h2>
+          <p class="text-sm text-gray-600" th:text="${userProfile.email}">user@email.com</p>
+        </div>
+      </div>
+      <hr class="my-4">
+      <p class="text-sm text-gray-500">Username: 
+        <span class="font-medium" th:text="${userProfile.username}">ajay123</span>
+      </p>
+    </div>
+
+    <!-- Trips Table -->
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-6 border-b">
+          <h2 class="text-xl font-bold text-[#003049]">My Uploaded Trips</h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead class="bg-gray-50 text-gray-700">
+              <tr>
+                <th class="px-6 py-3 text-left font-semibold">Title</th>
+                <th class="px-6 py-3 text-left font-semibold">Dates</th>
+                <th class="px-6 py-3 text-left font-semibold">Budget</th>
+                <th class="px-6 py-3 text-left font-semibold">Status</th>
+                <th class="px-6 py-3 text-right font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              <tr th:each="trip : ${trips}">
+                <td class="px-6 py-3 font-medium text-gray-900" th:text="${trip.title}">Goa Trip</td>
+                <td class="px-6 py-3 text-gray-600">
+                  <span th:text="${#temporals.format(trip.startDate, 'dd MMM')}"></span>
+                  -
+                  <span th:text="${#temporals.format(trip.endDate, 'dd MMM yyyy')}"></span>
+                </td>
+                <td class="px-6 py-3 text-gray-600" th:text="${trip.budget}">5000</td>
+                <td class="px-6 py-3">
+                  <span th:text="${trip.status}" 
+                        class="px-2 py-1 rounded-full text-xs font-semibold"
+                        th:classappend="${trip.status == 'ACTIVE'} ? 'bg-green-100 text-green-700' : (${trip.status == 'DRAFT'} ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700')">
+                  </span>
+                </td>
+                <td class="px-6 py-3 text-right space-x-2">
+                  <!-- Edit Button -->
+                  <button type="button"
+                          class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                          th:attr="data-id=${trip.tripId}, 
+                                   data-title=${trip.title}, 
+                                   data-start=${#temporals.format(trip.startDate, 'yyyy-MM-dd')}, 
+                                   data-end=${#temporals.format(trip.endDate, 'yyyy-MM-dd')}, 
+                                   data-budget=${trip.budget}, 
+                                   data-status=${trip.status}"
+                          onclick="openModal(this)">
+                    Edit
+                  </button>
+
+                  <!-- Delete -->
+                  <a th:href="@{/trips/dashboard/{username}/delete/{id}(username=${userProfile.username}, id=${trip.tripId})}" 
+                     class="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
+                     onclick="return confirm('Are you sure you want to delete this trip?')">Delete</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="fixed inset-0 hidden bg-gray-900 bg-opacity-50 flex items-center justify-center">
+  <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
+    <h2 class="text-xl font-bold mb-4 text-[#003049]">Edit Trip</h2>
+    <form th:action="@{/trips/dashboard/{username}/edit(username=${userProfile.username})}" method="post" class="space-y-4">
+      <input type="hidden" id="tripId" name="tripId">
+      <div>
+        <label class="block text-sm font-medium">Title</label>
+        <input type="text" id="title" name="title" class="w-full border rounded-md p-2" required>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium">Start Date</label>
+          <input type="date" id="startDate" name="startDate" class="w-full border rounded-md p-2" required>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">End Date</label>
+          <input type="date" id="endDate" name="endDate" class="w-full border rounded-md p-2" required>
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Budget</label>
+        <input type="number" id="budget" name="budget" class="w-full border rounded-md p-2" required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Status</label>
+        <select id="status" name="status" class="w-full border rounded-md p-2">
+          <option value="ACTIVE">Active</option>
+          <option value="DRAFT">Draft</option>
+          <option value="COMPLETED">COMPLETED</option>
+        </select>
+      </div>
+      <div class="flex justify-end space-x-2 mt-4">
+        <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-300 rounded-md">Cancel</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+  function openModal(button) {
+    document.getElementById("editModal").classList.remove("hidden");
+    document.getElementById("tripId").value = button.dataset.id;
+    document.getElementById("title").value = button.dataset.title;
+    document.getElementById("startDate").value = button.dataset.start;
+    document.getElementById("endDate").value = button.dataset.end;
+    document.getElementById("budget").value = button.dataset.budget;
+    document.getElementById("status").value = button.dataset.status;
+  }
+
+  function closeModal() {
+    document.getElementById("editModal").classList.add("hidden");
+  }
+</script>
+
+</body>
+</html>
+
+
+

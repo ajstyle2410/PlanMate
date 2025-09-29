@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Trip Plan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#f8f7ff] flex items-center justify-center min-h-screen">
+
+    <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-3xl">
+        <h1 class="text-3xl font-bold text-center mb-6 text-[#003049]">Create Your Trip Plan</h1>
+
+        <!-- Trip Plan Form -->
+        <form th:action="@{/trip/save}" th:object="${trip}" method="post" class="space-y-5">
+
+            <!-- Trip Name -->
+            <div>
+                <label class="block text-gray-700 font-medium">Trip Name</label>
+                <input type="text" th:field="*{tripName}" placeholder="Enter Trip Name"
+                       class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#012a4a]">
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label class="block text-gray-700 font-medium">Description</label>
+                <textarea th:field="*{description}" placeholder="Write trip description..."
+                          class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#012a4a]"></textarea>
+            </div>
+
+            <!-- Destination -->
+            <div>
+                <label class="block text-gray-700 font-medium">Destination</label>
+                <input type="text" th:field="*{destination}" placeholder="Enter Destination"
+                       class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#012a4a]">
+            </div>
+
+            <!-- Date & Time -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium">Start Date</label>
+                    <input type="date" th:field="*{startDate}" 
+                           class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#012a4a]">
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium">End Date</label>
+                    <input type="date" th:field="*{endDate}" 
+                           class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#012a4a]">
+                </div>
+            </div>
+
+            <!-- Budget -->
+            <div>
+                <label class="block text-gray-700 font-medium">Budget (₹)</label>
+                <input type="number" th:field="*{budget}" placeholder="Enter Estimated Budget"
+                       class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#012a4a]">
+            </div>
+
+            <!-- Days & Nights -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium">Days</label>
+                    <input type="number" th:field="*{days}" placeholder="No. of Days"
+                           class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#012a4a]">
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium">Nights</label>
+                    <input type="number" th:field="*{nights}" placeholder="No. of Nights"
+                           class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#012a4a]">
+                </div>
+            </div>
+
+            <!-- Uploader Name -->
+            <div>
+                <label class="block text-gray-700 font-medium">Uploaded By</label>
+                <input type="text" th:field="*{uploaderName}" placeholder="Enter Your Name"
+                       class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#012a4a]">
+            </div>
+
+            <!-- Submit Button -->
+            <div class="text-center">
+                <button type="submit"
+                        class="bg-[#003049] hover:bg-[#012a4a] text-white px-6 py-3 rounded-lg shadow-md transition">
+                    Save Trip Plan
+                </button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
