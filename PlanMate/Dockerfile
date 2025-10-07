@@ -12,16 +12,18 @@ RUN mvn -B dependency:go-offline
 COPY src ./src
 RUN mvn -B clean package -DskipTests
 
-# Stage 2: Run on Tomcat (suitable for Render Docker deployment)
+# Stage 2: Run on Tomcat (Render compatible)
 FROM tomcat:9.0-jdk17-temurin
 ENV CATALINA_OPTS="-Djava.security.egd=file:/dev/./urandom"
 WORKDIR /usr/local/tomcat
 
 # Remove default webapps and deploy our WAR as ROOT
 RUN rm -rf webapps/*
-COPY --from=builder /workspace/target/PlanMate.war webapps/ROOT.war
 
-# Render exposes the service on port 8080 by default
-EXPOSE 8000
+# Copy the built WAR (using wildcard to avoid naming mismatch)
+COPY --from=builder /workspace/target/*.war webapps/ROOT.war
+
+# Expose correct port for Render
+EXPOSE 8080
 
 CMD ["catalina.sh", "run"]
