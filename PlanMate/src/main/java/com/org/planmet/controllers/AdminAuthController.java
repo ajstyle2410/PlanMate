@@ -1,4 +1,4 @@
-﻿package com.org.planmet.controllers;
+package com.org.planmet.controllers;
 
 import com.org.planmet.Iservice.AdminService;
 import com.org.planmet.model.Admin;

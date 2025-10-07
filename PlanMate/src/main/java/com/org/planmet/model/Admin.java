@@ -1,4 +1,4 @@
-﻿package com.org.planmet.model;
+package com.org.planmet.model;
 
 import java.time.LocalDateTime;
 import javax.persistence.Column;

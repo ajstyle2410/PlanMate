@@ -1,4 +1,4 @@
-﻿package com.org.planmet.controllers;
+package com.org.planmet.controllers;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
