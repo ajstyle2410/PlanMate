@@ -21,6 +21,9 @@ public class AdminAuthController {
     public AdminAuthController(AdminService adminService) {
         this.adminService = adminService;
     }
+    
+    
+    
 
     @GetMapping("/login")
     public String showLoginPage(Model model) {
