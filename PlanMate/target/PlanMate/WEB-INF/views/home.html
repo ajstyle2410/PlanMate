@@ -1,58 +1,86 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PlanMate - Trip Planning</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlanMate - Trip Planning</title>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-
-
 <body class="bg-[#f8f7ff] text-gray-800">
-    <div th:insert="navbar">  </div>
-
+    <div th:insert="~{navbar}"></div>
     <!-- Hero Section -->
     <section class="bg-[#012a4a] text-white py-20 text-center">
         <div class="container mx-auto px-6">
             <h1 class="text-4xl md:text-5xl font-bold mb-4">Plan Your Next Adventure with Strangers</h1>
             <p class="text-lg mb-6">Join or create trip plans, meet new people, and explore together.</p>
-            <a href="/plans" class="bg-[#003049] hover:bg-blue-900 px-6 py-3 rounded-lg font-semibold transition">Explore Plans</a>
+            <a href="/plans"
+               class="bg-[#003049] hover:bg-blue-900 px-6 py-3 rounded-lg font-semibold transition">Explore Plans</a>
         </div>
     </section>
 
     <!-- Trip Plans Section -->
     <section class="py-16 container mx-auto px-6">
-        <h2 class="text-3xl font-bold text-center mb-10 text-[#003049]">Available Trip Plans</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            
-            <!-- Trip Plan Card -->
-            <div class="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-md hover:shadow-xl transition">
-                <h3 class="mb-2 text-xl font-bold text-gray-900">Goa Beach Adventure</h3>
-                <p class="mb-2 text-gray-600">Relaxing beach trip with nightlife exploration.</p>
-                <p class="text-sm text-gray-500">📅 Jan 15, 2025 | 💰 ₹15,000 | ⏳ 4 Days / 3 Nights</p>
-                <p class="mt-2 text-sm font-medium text-gray-700">Uploaded by: Rahul Sharma</p>
-                <a href="/plans/1" class="inline-block mt-4 bg-[#003049] text-white px-4 py-2 rounded-lg hover:bg-blue-900 transition">Read More</a>
-            </div>
+        <h2 class="text-3xl font-bold text-center mb-12 text-[#003049]">Available Trip Plans</h2>
 
-            <!-- Trip Plan Card -->
-            <div class="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-md hover:shadow-xl transition">
-                <h3 class="mb-2 text-xl font-bold text-gray-900">Manali Trekking</h3>
-                <p class="mb-2 text-gray-600">Snowy peaks, trekking, and bonfire fun.</p>
-                <p class="text-sm text-gray-500">📅 Feb 2, 2025 | 💰 ₹12,000 | ⏳ 5 Days / 4 Nights</p>
-                <p class="mt-2 text-sm font-medium text-gray-700">Uploaded by: Anjali Verma</p>
-                <a href="/plans/2" class="inline-block mt-4 bg-[#003049] text-white px-4 py-2 rounded-lg hover:bg-blue-900 transition">Read More</a>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 auto-rows-fr">
+            <!-- Loop over trips -->
+            <article th:each="trip : ${trips}"
+                     class="flex flex-col h-full bg-white border border-gray-200 rounded-2xl shadow-lg hover:shadow-2xl transition duration-300 overflow-hidden">
 
-            <!-- Trip Plan Card -->
-            <div class="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-md hover:shadow-xl transition">
-                <h3 class="mb-2 text-xl font-bold text-gray-900">Jaipur Heritage Tour</h3>
-                <p class="mb-2 text-gray-600">Cultural trip exploring forts & palaces.</p>
-                <p class="text-sm text-gray-500">📅 Mar 10, 2025 | 💰 ₹8,000 | ⏳ 3 Days / 2 Nights</p>
-                <p class="mt-2 text-sm font-medium text-gray-700">Uploaded by: Sameer Khan</p>
-                <a href="/plans/3" class="inline-block mt-4 bg-[#003049] text-white px-4 py-2 rounded-lg hover:bg-blue-900 transition">Read More</a>
-            </div>
+                <div class="p-6 flex flex-col flex-1">
+                    <!-- Trip Title -->
+                    <h3 class="mb-3 text-2xl font-semibold text-gray-900 truncate"
+                        th:text="${trip.title}">Trip Title</h3>
 
+                    <!-- Description -->
+                    <p class="mb-4 text-gray-600 overflow-hidden"
+                       style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;"
+                       th:text="${trip.description}">
+                        Trip description here...
+                    </p>
+
+                    <!-- Date -->
+                    <p class="text-sm text-gray-500 mb-3">
+                        From <span th:text="${#temporals.format(trip.startDate, 'dd MMM yyyy')}"></span>
+                        to <span th:text="${#temporals.format(trip.endDate, 'dd MMM yyyy')}"></span>
+                    </p>
+
+                    <!-- Destinations -->
+                    <p class="text-sm text-gray-700 font-semibold">Destinations:</p>
+                    <div class="flex flex-wrap gap-2 mt-2 mb-4 text-sm text-gray-600">
+                        <span th:each="dest : ${trip.destinations}"
+                              th:text="${dest.placeName}"
+                              class="bg-gray-100 px-2 py-1 rounded-full text-xs text-[#003049] font-medium">
+                            Destination Name
+                        </span>
+                        <span th:if="${#lists.isEmpty(trip.destinations)}"
+                              class="text-xs text-gray-400">No destinations listed</span>
+                    </div>
+
+                    <!-- Uploaded Info -->
+                    <p class="mt-auto text-xs text-gray-500">
+                        Uploaded by: <span th:text="${trip.uploadedby}"></span>
+                    </p>
+                    <p class="text-xs text-gray-500">
+                        Uploaded Date: <span th:text="${#temporals.format(trip.uplodedDate, 'dd MMM yyyy')}"></span>
+                    </p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-auto p-6 border-t bg-gray-50 flex justify-center">
+                    <a th:if="${loggedInUser != null}"
+                       th:href="@{/trips/create/{id}(id=${trip.tripId})}"
+                       class="w-full text-center bg-[#003049] text-white px-4 py-2 rounded-lg hover:bg-blue-900 transition">
+                        Read More
+                    </a>
+
+                    <button th:if="${loggedInUser == null}" disabled
+                            class="w-full text-center bg-gray-400 text-white px-4 py-2 rounded-lg opacity-70 cursor-not-allowed">
+                        Login to Read More
+                    </button>
+                </div>
+            </article>
         </div>
     </section>
 

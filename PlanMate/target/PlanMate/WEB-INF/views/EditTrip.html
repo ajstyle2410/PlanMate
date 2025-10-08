@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Trip - PlanMate</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#f8f7ff] text-gray-800">
+
+<div class="container mx-auto px-6 py-12">
+  <h1 class="text-3xl font-bold text-[#003049] mb-8">Edit Trip</h1>
+
+  <form th:action="@{/trips/edit}" th:object="${trip}" method="post" class="bg-white p-6 rounded-xl shadow-md space-y-4">
+
+    <input type="hidden" th:field="*{tripId}">
+
+    <div>
+      <label class="block text-sm font-medium">Title</label>
+      <input type="text" th:field="*{title}" class="w-full border rounded-md p-2" required>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium">Start Date</label>
+        <input type="date" th:field="*{startDate}" class="w-full border rounded-md p-2" required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium">End Date</label>
+        <input type="date" th:field="*{endDate}" class="w-full border rounded-md p-2" required>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium">Budget</label>
+      <input type="number" th:field="*{budget}" class="w-full border rounded-md p-2" required>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium">Status</label>
+      <select th:field="*{status}" class="w-full border rounded-md p-2">
+        <option value="ACTIVE">Active</option>
+        <option value="DRAFT">Draft</option>
+        <option value="CLOSED">Closed</option>
+      </select>
+    </div>
+
+    <div class="flex justify-end space-x-2 mt-4">
+      <a href="/trips/dashboard" class="px-4 py-2 bg-gray-300 rounded-md">Cancel</a>
+      <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md">Save Changes</button>
+    </div>
+  </form>
+</div>
+
+</body>
+</html>
