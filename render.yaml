@@ -1,0 +1,77 @@
+services:
+  # Web Service Configuration
+  - type: web
+    name: planmate
+    env: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: ./PlanMate
+    
+    # Environment Variables
+    envVars:
+      # Database Configuration (linked to database service)
+      - key: DB_DRIVER
+        value: org.postgresql.Driver
+      
+      - key: DB_URL
+        fromDatabase:
+          name: planmate-db
+          property: connectionString
+      
+      - key: DB_USERNAME
+        fromDatabase:
+          name: planmate-db
+          property: user
+      
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: planmate-db
+          property: password
+      
+      # Hibernate Configuration
+      - key: HIBERNATE_DIALECT
+        value: org.hibernate.dialect.PostgreSQLDialect
+      
+      - key: HIBERNATE_DDL_AUTO
+        value: validate
+      
+      - key: HIBERNATE_SHOW_SQL
+        value: false
+      
+      - key: HIBERNATE_FORMAT_SQL
+        value: false
+      
+      # Application Configuration
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      
+      - key: LOG_LEVEL
+        value: INFO
+      
+      - key: PORT
+        value: 8080
+      
+      # CORS Configuration (update with your frontend domain)
+      - key: ALLOWED_ORIGINS
+        value: https://planmates.dpdns.org,http://localhost:4200
+    
+    # Health Check Configuration
+    healthCheckPath: /health
+    
+    # Auto-deploy on push
+    autoDeploy: true
+    
+    # Build Command (optional, Docker handles this)
+    # buildCommand: mvn clean package -DskipTests
+
+# Database Configuration
+databases:
+  - name: planmate-db
+    databaseName: planmate
+    user: planmate_user
+    region: oregon
+    plan: free
+    
+    # PostgreSQL version
+    ipAllowList: []  # Empty means allow all, configure if you need IP restrictions
