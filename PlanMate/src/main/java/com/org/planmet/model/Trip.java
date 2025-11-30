@@ -36,6 +36,39 @@ public class Trip {
 	@OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private List<Destination> destinations = new ArrayList<>();
 
+	// New relationships for enhanced features
+	@OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+	private List<DayPlan> dayPlans = new ArrayList<>();
+
+	@OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+	private List<Expense> expenses = new ArrayList<>();
+
+	@OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+	private List<Accommodation> accommodations = new ArrayList<>();
+
+	@OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+	private List<Transportation> transportations = new ArrayList<>();
+
+	@OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+	private List<PackingItem> packingItems = new ArrayList<>();
+
+	@OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+	private List<TripDocument> documents = new ArrayList<>();
+
+	@OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+	private List<TripShare> shares = new ArrayList<>();
+
+	// Enhanced trip fields
+	@Enumerated(EnumType.STRING)
+	@Column(length = 20)
+	private Visibility visibility = Visibility.PRIVATE;
+
+	@Column(name = "tags", length = 500)
+	private String tags;
+
+	@Column(name = "category", length = 100)
+	private String category;
+
 	@Enumerated(EnumType.STRING)
 	@Column(length = 20, nullable = false)
 	private Status status = Status.DRAFT;
@@ -46,7 +79,11 @@ public class Trip {
 	private UserProfile user;
 
 	public enum Status {
-		DRAFT, ACTIVE, COMPLETED
+		DRAFT, ACTIVE, COMPLETED, CANCELLED
+	}
+
+	public enum Visibility {
+		PRIVATE, SHARED, PUBLIC
 	}
 
 	// ---------- Convenience methods ----------
@@ -118,7 +155,10 @@ public class Trip {
 	}
 
 	public void setDestinations(List<Destination> destinations) {
-		this.destinations = Objects.requireNonNullElseGet(destinations, ArrayList::new);
+		this.destinations.clear();
+		if (destinations != null) {
+			this.destinations.addAll(destinations);
+		}
 	}
 
 	public LocalDate getUplodedDate() {
@@ -137,6 +177,14 @@ public class Trip {
 		this.status = status;
 	}
 
+	public Visibility getVisibility() {
+		return visibility;
+	}
+
+	public void setVisibility(Visibility visibility) {
+		this.visibility = visibility;
+	}
+
 	public UserProfile getUser() {
 		return user;
 	}
@@ -153,6 +201,100 @@ public class Trip {
 
 	public void setUploadedby(String uploadedby) {
 		Uploadedby = uploadedby;
+	}
+
+	// Getters and Setters for new relationships
+	public List<DayPlan> getDayPlans() {
+		return dayPlans;
+	}
+
+	public void setDayPlans(List<DayPlan> dayPlans) {
+		this.dayPlans.clear();
+		if (dayPlans != null) {
+			this.dayPlans.addAll(dayPlans);
+		}
+	}
+
+	public List<Expense> getExpenses() {
+		return expenses;
+	}
+
+	public void setExpenses(List<Expense> expenses) {
+		this.expenses.clear();
+		if (expenses != null) {
+			this.expenses.addAll(expenses);
+		}
+	}
+
+	public List<Accommodation> getAccommodations() {
+		return accommodations;
+	}
+
+	public void setAccommodations(List<Accommodation> accommodations) {
+		this.accommodations.clear();
+		if (accommodations != null) {
+			this.accommodations.addAll(accommodations);
+		}
+	}
+
+	public List<Transportation> getTransportations() {
+		return transportations;
+	}
+
+	public void setTransportations(List<Transportation> transportations) {
+		this.transportations.clear();
+		if (transportations != null) {
+			this.transportations.addAll(transportations);
+		}
+	}
+
+	public List<PackingItem> getPackingItems() {
+		return packingItems;
+	}
+
+	public void setPackingItems(List<PackingItem> packingItems) {
+		this.packingItems.clear();
+		if (packingItems != null) {
+			this.packingItems.addAll(packingItems);
+		}
+	}
+
+	public List<TripDocument> getDocuments() {
+		return documents;
+	}
+
+	public void setDocuments(List<TripDocument> documents) {
+		this.documents.clear();
+		if (documents != null) {
+			this.documents.addAll(documents);
+		}
+	}
+
+	public List<TripShare> getShares() {
+		return shares;
+	}
+
+	public void setShares(List<TripShare> shares) {
+		this.shares.clear();
+		if (shares != null) {
+			this.shares.addAll(shares);
+		}
+	}
+
+	public String getTags() {
+		return tags;
+	}
+
+	public void setTags(String tags) {
+		this.tags = tags;
+	}
+
+	public String getCategory() {
+		return category;
+	}
+
+	public void setCategory(String category) {
+		this.category = category;
 	}
 
 	@Override

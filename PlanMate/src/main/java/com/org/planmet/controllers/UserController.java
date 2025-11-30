@@ -25,12 +25,20 @@ public class UserController {
     public UserController(UserProfileService userService) {
         this.userService = userService;
     }
-    
+
+    @ModelAttribute
+    public void addLoggedInUser(HttpSession session, Model model) {
+        UserProfile loggedInUser = (UserProfile) session.getAttribute("loggedInUser");
+        if (loggedInUser != null) {
+            model.addAttribute("loggedInUser", loggedInUser);
+        }
+    }
+
     @GetMapping("/userdashboard/{username}")
     public String userDashboard(Model model,
-                            @PathVariable("username") String username,
-                            @RequestParam(required = false) String message,
-                            @RequestParam(required = false) String messageType) {
+            @PathVariable("username") String username,
+            @RequestParam(required = false) String message,
+            @RequestParam(required = false) String messageType) {
         Optional<UserProfile> profileOpt = userService.findUserDetails(username);
         if (profileOpt.isEmpty()) {
             model.addAttribute("error", "User not found");
@@ -63,6 +71,7 @@ public class UserController {
     public String registerUser(@ModelAttribute("userProfile") UserProfile userProfile, Model model) {
         userService.registerUser(userProfile);
         model.addAttribute("msg", "User registered successfully! Please login.");
+        model.addAttribute("authRequest", new AuthRequest()); // Add this for login form binding
         return "login";
     }
 
@@ -75,11 +84,10 @@ public class UserController {
 
     @PostMapping("/logindata")
     public String loginUser(@ModelAttribute AuthRequest authRequest,
-                            HttpSession session,
-                            Model model) {
+            HttpSession session,
+            Model model) {
         Optional<UserProfile> userOpt = Optional.ofNullable(
-                userService.login(authRequest.getUsername(), authRequest.getPassword())
-        );
+                userService.login(authRequest.getUsername(), authRequest.getPassword()));
 
         if (userOpt.isEmpty()) {
             model.addAttribute("error", "Invalid username or password");
@@ -109,4 +117,3 @@ public class UserController {
         return "redirect:/";
     }
 }
-

@@ -1,13 +1,258 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PlanMate - Trip Planning</title>
+    <title>PlanMate - Your Trip Planning Companion</title>
+    
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        [x-cloak] { display: none !important; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .tab-active { border-bottom: 3px solid #3b82f6; color: #3b82f6; font-weight: 600; }
+    </style>
 </head>
-<body class="bg-[#f8f7ff] text-gray-800">
-
-
+<body class="bg-gray-50">
+    
+    <!-- SPA Container -->
+    <div x-data="planMateApp()" x-cloak>
+        
+        <!-- Navigation -->
+        <nav class="bg-white shadow-lg sticky top-0 z-50">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center py-4">
+                    <!-- Logo -->
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 gradient-bg rounded-lg flex items-center justify-center">
+                            <i class="fas fa-plane text-white text-xl"></i>
+                        </div>
+                        <span class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                            PlanMate
+                        </span>
+                    </div>
+                    
+                    <!-- Desktop Navigation -->
+                    <div class="hidden md:flex space-x-1">
+                        <template x-for="tab in tabs" :key="tab.id">
+                            <button 
+                                @click="activeTab = tab.id"
+                                :class="activeTab === tab.id ? 'tab-active' : 'text-gray-600 hover:text-blue-600'"
+                                class="px-4 py-2 transition-all duration-200">
+                                <i :class="tab.icon" class="mr-2"></i>
+                                <span x-text="tab.name"></span>
+                            </button>
+                        </template>
+                    </div>
+                    
+                    <!-- User Menu -->
+                    <div class="flex items-center space-x-4">
+                        <button class="relative">
+                            <i class="fas fa-bell text-gray-600 text-xl"></i>
+                            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">3</span>
+                        </button>
+                        <div class="flex items-center space-x-2">
+                            <img src="https://ui-avatars.com/api/?name=User&background=667eea&color=fff" 
+                                 class="w-10 h-10 rounded-full" alt="User">
+                            <span class="hidden md:block font-medium" th:text="${userProfile?.fullname} ?: 'Guest'">User</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Mobile Menu Button -->
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Mobile Menu -->
+                <div x-show="mobileMenuOpen" class="md:hidden pb-4">
+                    <template x-for="tab in tabs" :key="tab.id">
+                        <button 
+                            @click="activeTab = tab.id; mobileMenuOpen = false"
+                            :class="activeTab === tab.id ? 'bg-blue-50 text-blue-600' : 'text-gray-600'"
+                            class="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors">
+                            <i :class="tab.icon" class="mr-3"></i>
+                            <span x-text="tab.name"></span>
+                        </button>
+                    </template>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Main Content Area -->
+        <main class="container mx-auto px-4 py-8">
+            
+            <!-- Dashboard Section -->
+            <div x-show="activeTab === 'dashboard'" class="space-y-6">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-3xl font-bold text-gray-800">Trip Dashboard</h1>
+                    <button @click="showModal = 'newTrip'" class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all">
+                        <i class="fas fa-plus mr-2"></i> New Trip
+                    </button>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">Total Trips</p>
+                                <p class="text-3xl font-bold text-gray-800">12</p>
+                            </div>
+                            <div class="bg-blue-100 rounded-full p-3">
+                                <i class="fas fa-suitcase text-blue-600 text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">Active Trips</p>
+                                <p class="text-3xl font-bold text-gray-800">3</p>
+                            </div>
+                            <div class="bg-green-100 rounded-full p-3">
+                                <i class="fas fa-plane-departure text-green-600 text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">Total Budget</p>
+                                <p class="text-3xl font-bold text-gray-800">$15.2K</p>
+                            </div>
+                            <div class="bg-purple-100 rounded-full p-3">
+                                <i class="fas fa-dollar-sign text-purple-600 text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-orange-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">Destinations</p>
+                                <p class="text-3xl font-bold text-gray-800">28</p>
+                            </div>
+                            <div class="bg-orange-100 rounded-full p-3">
+                                <i class="fas fa-map-marked-alt text-orange-600 text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Trips List -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h2 class="text-xl font-bold mb-4">Your Trips</h2>
+                    <div class="space-y-4">
+                        <div class="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-lg text-gray-800">Summer Europe Tour</h3>
+                                    <p class="text-gray-600 text-sm mt-1">Paris, Rome, Barcelona • 14 days</p>
+                                    <div class="flex items-center space-x-4 mt-3">
+                                        <span class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">Active</span>
+                                        <span class="text-xs text-gray-500"><i class="far fa-calendar mr-1"></i> Jun 15 - Jun 29</span>
+                                        <span class="text-xs text-gray-500"><i class="fas fa-dollar-sign mr-1"></i> $5,200</span>
+                                    </div>
+                                </div>
+                                <button class="text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Itinerary Section -->
+            <div x-show="activeTab === 'itinerary'" class="space-y-6">
+                <h1 class="text-3xl font-bold text-gray-800">Trip Itinerary</h1>
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <p class="text-gray-600">Plan your day-by-day activities and schedule...</p>
+                </div>
+            </div>
+            
+            <!-- Budget Section -->
+            <div x-show="activeTab === 'budget'" class="space-y-6">
+                <h1 class="text-3xl font-bold text-gray-800">Budget Tracker</h1>
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <p class="text-gray-600">Track your expenses and manage your budget...</p>
+                </div>
+            </div>
+            
+            <!-- Accommodation Section -->
+            <div x-show="activeTab === 'accommodation'" class="space-y-6">
+                <h1 class="text-3xl font-bold text-gray-800">Accommodations</h1>
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <p class="text-gray-600">Manage your hotel bookings and stays...</p>
+                </div>
+            </div>
+            
+            <!-- Transportation Section -->
+            <div x-show="activeTab === 'transportation'" class="space-y-6">
+                <h1 class="text-3xl font-bold text-gray-800">Transportation</h1>
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <p class="text-gray-600">Track flights, trains, and other transportation...</p>
+                </div>
+            </div>
+            
+            <!-- Packing Section -->
+            <div x-show="activeTab === 'packing'" class="space-y-6">
+                <h1 class="text-3xl font-bold text-gray-800">Packing List</h1>
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <p class="text-gray-600">Create and manage your packing checklist...</p>
+                </div>
+            </div>
+            
+            <!-- Documents Section -->
+            <div x-show="activeTab === 'documents'" class="space-y-6">
+                <h1 class="text-3xl font-bold text-gray-800">Travel Documents</h1>
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <p class="text-gray-600">Store and manage important travel documents...</p>
+                </div>
+            </div>
+            
+        </main>
+        
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white mt-16">
+            <div class="container mx-auto px-4 py-8">
+                <div class="text-center">
+                    <p>&copy; 2025 PlanMate. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+        
+    </div>
+    
+    <!-- Alpine.js App Logic -->
+    <script>
+        function planMateApp() {
+            return {
+                activeTab: 'dashboard',
+                mobileMenuOpen: false,
+                showModal: null,
+                tabs: [
+                    { id: 'dashboard', name: 'Dashboard', icon: 'fas fa-home' },
+                    { id: 'itinerary', name: 'Itinerary', icon: 'fas fa-calendar-alt' },
+                    { id: 'budget', name: 'Budget', icon: 'fas fa-wallet' },
+                    { id: 'accommodation', name: 'Stays', icon: 'fas fa-hotel' },
+                    { id: 'transportation', name: 'Transport', icon: 'fas fa-plane' },
+                    { id: 'packing', name: 'Packing', icon: 'fas fa-suitcase' },
+                    { id: 'documents', name: 'Documents', icon: 'fas fa-file-alt' }
+                ]
+            }
+        }
+    </script>
+    
 </body>
 </html>

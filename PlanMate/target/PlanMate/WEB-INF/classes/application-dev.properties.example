@@ -1,0 +1,39 @@
+# Example configuration file for local development
+# Copy this to application-dev.properties and configure for your local environment
+# DO NOT commit actual credentials to version control
+
+# ----------------------------------------------------------------------------
+# DataSource configuration - LOCAL DEVELOPMENT
+# ----------------------------------------------------------------------------
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# Local PostgreSQL (update with your local database)
+spring.datasource.url=jdbc:postgresql://localhost:5432/planmate_dev?sslmode=disable
+spring.datasource.username=your_local_username
+spring.datasource.password=your_local_password
+
+# Or use H2 for local development
+# spring.datasource.driver-class-name=org.h2.Driver
+# spring.datasource.url=jdbc:h2:mem:planmate;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+# spring.datasource.username=sa
+# spring.datasource.password=
+
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+
+# ----------------------------------------------------------------------------
+# Hibernate options - DEVELOPMENT
+# ----------------------------------------------------------------------------
+hibernate.show_sql=true
+hibernate.format_sql=true
+hibernate.hbm2ddl.auto=update
+hibernate.archive.autodetection=class,hbm
+hibernate.temp.use_jdbc_metadata_defaults=false
+hibernate.jdbc.lob.non_contextual_creation=true
+
+# ----------------------------------------------------------------------------
+# Logging - DEVELOPMENT
+# ----------------------------------------------------------------------------
+# Set logging level for your application
+logging.level.com.org.planmet=DEBUG
+logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE

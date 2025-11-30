@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trip Itinerary - PlanMate</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        [x-cloak] { display: none !important; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    </style>
+</head>
+<body class="bg-gray-50">
+    
+    <div x-data="itineraryApp()" x-cloak>
+        
+        <!-- Navigation -->
+        <nav class="bg-white shadow-lg sticky top-0 z-50">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center space-x-3">
+                        <a th:href="@{/}" class="flex items-center space-x-3">
+                            <div class="w-10 h-10 gradient-bg rounded-lg flex items-center justify-center">
+                                <i class="fas fa-plane text-white text-xl"></i>
+                            </div>
+                            <span class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                                PlanMate
+                            </span>
+                        </a>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <a th:href="@{/userdashboard/{username}(username=${userProfile.username})}" 
+                           class="text-gray-600 hover:text-blue-600">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                        </a>
+                        <div class="flex items-center space-x-2">
+                            <img th:src="@{'https://ui-avatars.com/api/?name=' + ${userProfile.fullname} + '&background=667eea&color=fff'}" 
+                                 class="w-10 h-10 rounded-full" alt="User">
+                            <span class="hidden md:block font-medium" th:text="${userProfile.fullname}">User</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8">
+            
+            <!-- Header -->
+            <div class="mb-8">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h1 class="text-4xl font-bold text-gray-800 mb-2" th:text="${trip.title}">Trip Title</h1>
+                        <p class="text-gray-600">
+                            <i class="far fa-calendar mr-2"></i>
+                            <span th:text="${#temporals.format(trip.startDate, 'MMM dd, yyyy')}">Start</span> - 
+                            <span th:text="${#temporals.format(trip.endDate, 'MMM dd, yyyy')}">End</span>
+                        </p>
+                    </div>
+                    <button @click="showAddDayPlan = true" 
+                            class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all">
+                        <i class="fas fa-plus mr-2"></i>Add Day Plan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Feature Navigation Tabs -->
+            <div class="bg-white rounded-xl shadow-md p-4 mb-6">
+                <div class="flex flex-wrap gap-2">
+                    <a th:href="@{/trips/{id}/itinerary(id=${trip.tripId})}" 
+                       class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-medium">
+                        <i class="fas fa-calendar-alt mr-2"></i>Itinerary
+                    </a>
+                    <a th:href="@{/trips/{id}/budget(id=${trip.tripId})}" 
+                       class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-wallet mr-2"></i>Budget
+                    </a>
+                    <a th:href="@{/trips/{id}/accommodations(id=${trip.tripId})}" 
+                       class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-hotel mr-2"></i>Accommodations
+                    </a>
+                    <a th:href="@{/trips/{id}/transportation(id=${trip.tripId})}" 
+                       class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-plane mr-2"></i>Transportation
+                    </a>
+                    <a th:href="@{/trips/{id}/packing(id=${trip.tripId})}" 
+                       class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-suitcase mr-2"></i>Packing
+                    </a>
+                    <a th:href="@{/trips/{id}/documents(id=${trip.tripId})}" 
+                       class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-file-alt mr-2"></i>Documents
+                    </a>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div th:if="${message}" 
+                 :class="'mb-6 p-4 rounded-lg ' + (messageType === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700')"
+                 th:classappend="${messageType == 'success'} ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                <p th:text="${message}">Message</p>
+            </div>
+            
+            <!-- Day Plans Timeline -->
+            <div class="space-y-6" th:if="${!dayPlans.isEmpty()}">
+                <div th:each="dayPlan : ${dayPlans}" class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-xl font-bold">
+                                    Day <span th:text="${dayPlan.dayNumber}">1</span>
+                                    <span th:if="${dayPlan.dayTitle}" th:text="' - ' + ${dayPlan.dayTitle}"></span>
+                                </h3>
+                                <p class="text-purple-100">
+                                    <i class="far fa-calendar mr-2"></i>
+                                    <span th:text="${#temporals.format(dayPlan.planDate, 'EEEE, MMMM dd, yyyy')}">Date</span>
+                                </p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button @click="selectedDayPlan = [[${dayPlan.id}]]; showAddActivity = true" 
+                                        class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded text-sm">
+                                    <i class="fas fa-plus mr-1"></i>Activity
+                                </button>
+                                <a th:href="@{/trips/{tripId}/itinerary/{dayPlanId}/delete(tripId=${trip.tripId},dayPlanId=${dayPlan.id})}" 
+                                   onclick="return confirm('Delete this day plan?')"
+                                   class="bg-red-500 bg-opacity-80 hover:bg-opacity-100 px-3 py-1 rounded text-sm">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <p th:if="${dayPlan.notes}" class="mt-2 text-purple-100" th:text="${dayPlan.notes}">Notes</p>
+                    </div>
+                    
+                    <!-- Activities -->
+                    <div class="p-4">
+                        <div th:if="${dayPlan.activities.isEmpty()}" class="text-center text-gray-500 py-8">
+                            <i class="fas fa-calendar-plus text-4xl mb-2"></i>
+                            <p>No activities planned for this day</p>
+                        </div>
+                        
+                        <div th:if="${!dayPlan.activities.isEmpty()}" class="space-y-3">
+                            <div th:each="activity : ${dayPlan.activities}" 
+                                 class="border-l-4 border-blue-500 pl-4 py-2 hover:bg-gray-50 rounded">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-2">
+                                            <h4 class="font-bold text-gray-800" th:text="${activity.activityName}">Activity</h4>
+                                            <span th:if="${activity.priority}" 
+                                                  th:classappend="${activity.priority.name() == 'MUST_DO'} ? 'bg-red-100 text-red-700' : 
+                                                                  ${activity.priority.name() == 'HIGH'} ? 'bg-orange-100 text-orange-700' : 
+                                                                  'bg-gray-100 text-gray-700'"
+                                                  class="text-xs px-2 py-1 rounded-full"
+                                                  th:text="${activity.priority}">Priority</span>
+                                        </div>
+                                        <div class="flex items-center space-x-4 mt-1 text-sm text-gray-600">
+                                            <span th:if="${activity.startTime}">
+                                                <i class="far fa-clock mr-1"></i>
+                                                <span th:text="${#temporals.format(activity.startTime, 'HH:mm')}">Time</span>
+                                                <span th:if="${activity.endTime}" th:text="' - ' + ${#temporals.format(activity.endTime, 'HH:mm')}"></span>
+                                            </span>
+                                            <span th:if="${activity.location}">
+                                                <i class="fas fa-map-marker-alt mr-1"></i>
+                                                <span th:text="${activity.location}">Location</span>
+                                            </span>
+                                            <span th:if="${activity.category}">
+                                                <i class="fas fa-tag mr-1"></i>
+                                                <span th:text="${activity.category}">Category</span>
+                                            </span>
+                                            <span th:if="${activity.estimatedCost}">
+                                                <i class="fas fa-dollar-sign mr-1"></i>
+                                                <span th:text="${activity.estimatedCost}">Cost</span>
+                                            </span>
+                                        </div>
+                                        <p th:if="${activity.description}" class="text-gray-600 text-sm mt-1" th:text="${activity.description}">Description</p>
+                                    </div>
+                                    <form th:action="@{/trips/{tripId}/itinerary/activities/{activityId}/delete(tripId=${trip.tripId},activityId=${activity.id})}" 
+                                          method="post" style="display:inline;">
+                                        <button type="submit" onclick="return confirm('Delete this activity?')" 
+                                                class="text-red-500 hover:text-red-700">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Empty State -->
+            <div th:if="${dayPlans.isEmpty()}" class="bg-white rounded-xl shadow-md p-12 text-center">
+                <i class="fas fa-calendar-alt text-6xl text-gray-300 mb-4"></i>
+                <h3 class="text-2xl font-bold text-gray-700 mb-2">No Day Plans Yet</h3>
+                <p class="text-gray-500 mb-6">Start planning your trip by adding day-by-day itinerary</p>
+                <button @click="showAddDayPlan = true" 
+                        class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all">
+                    <i class="fas fa-plus mr-2"></i>Add First Day Plan
+                </button>
+            </div>
+            
+        </main>
+        
+        <!-- Add Day Plan Modal -->
+        <div x-show="showAddDayPlan" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" @click.self="showAddDayPlan = false">
+            <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+                <h3 class="text-2xl font-bold mb-4">Add Day Plan</h3>
+                <form th:action="@{/trips/{id}/itinerary/add(id=${trip.tripId})}" method="post">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Day Number</label>
+                            <input type="number" name="dayNumber" required min="1"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                            <input type="date" name="planDate" required
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Day Title (Optional)</label>
+                            <input type="text" name="dayTitle" placeholder="e.g., Exploring Paris"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                            <textarea name="notes" rows="3" placeholder="Any special notes for this day"
+                                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+                    </div>
+                    <div class="flex space-x-3 mt-6">
+                        <button type="submit" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                            Add Day Plan
+                        </button>
+                        <button type="button" @click="showAddDayPlan = false" 
+                                class="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Add Activity Modal -->
+        <div x-show="showAddActivity" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" @click.self="showAddActivity = false">
+            <div class="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <h3 class="text-2xl font-bold mb-4">Add Activity</h3>
+                <form :action="`/trips/[[${trip.tripId}]]/itinerary/${selectedDayPlan}/activities/add`" method="post">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Activity Name *</label>
+                            <input type="text" name="activityName" required
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <textarea name="description" rows="2"
+                                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                            <select name="category" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select category</option>
+                                <option value="SIGHTSEEING">Sightseeing</option>
+                                <option value="DINING">Dining</option>
+                                <option value="ADVENTURE">Adventure</option>
+                                <option value="RELAXATION">Relaxation</option>
+                                <option value="SHOPPING">Shopping</option>
+                                <option value="ENTERTAINMENT">Entertainment</option>
+                                <option value="CULTURAL">Cultural</option>
+                                <option value="SPORTS">Sports</option>
+                                <option value="NATURE">Nature</option>
+                                <option value="NIGHTLIFE">Nightlife</option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                            <select name="priority" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="NORMAL">Normal</option>
+                                <option value="MUST_DO">Must Do</option>
+                                <option value="HIGH">High</option>
+                                <option value="LOW">Low</option>
+                                <option value="OPTIONAL">Optional</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                            <input type="time" name="startTime"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+                            <input type="time" name="endTime"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                            <input type="text" name="location"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Estimated Cost</label>
+                            <input type="number" name="estimatedCost" step="0.01"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div class="flex space-x-3 mt-6">
+                        <button type="submit" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                            Add Activity
+                        </button>
+                        <button type="button" @click="showAddActivity = false" 
+                                class="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+    </div>
+    
+    <script>
+        function itineraryApp() {
+            return {
+                showAddDayPlan: false,
+                showAddActivity: false,
+                selectedDayPlan: null,
+                messageType: '[[${messageType}]]' || 'info'
+            }
+        }
+    </script>
+    
+</body>
+</html>

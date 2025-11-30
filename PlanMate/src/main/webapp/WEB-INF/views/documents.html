@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Documents - PlanMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+
+    <div x-data="documentsApp()" x-cloak>
+
+        <!-- Navigation -->
+        <nav class="bg-white shadow-lg sticky top-0 z-50">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center space-x-3">
+                        <a th:href="@{/}" class="flex items-center space-x-3">
+                            <div class="w-10 h-10 gradient-bg rounded-lg flex items-center justify-center">
+                                <i class="fas fa-plane text-white text-xl"></i>
+                            </div>
+                            <span
+                                class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">PlanMate</span>
+                        </a>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <a th:href="@{/userdashboard/{username}(username=${userProfile.username})}"
+                            class="text-gray-600 hover:text-blue-600">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8">
+
+            <!-- Header -->
+            <div class="mb-8">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h1 class="text-4xl font-bold text-gray-800 mb-2">Travel Documents</h1>
+                        <p class="text-gray-600" th:text="${trip.title}">Trip Title</p>
+                    </div>
+                    <button @click="showAddDocument = true"
+                        class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all">
+                        <i class="fas fa-plus mr-2"></i>Add Document
+                    </button>
+                </div>
+            </div>
+
+            <!-- Feature Navigation Tabs -->
+            <div class="bg-white rounded-xl shadow-md p-4 mb-6">
+                <div class="flex flex-wrap gap-2">
+                    <a th:href="@{/trips/{id}/itinerary(id=${trip.tripId})}"
+                        class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-calendar-alt mr-2"></i>Itinerary
+                    </a>
+                    <a th:href="@{/trips/{id}/budget(id=${trip.tripId})}"
+                        class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-wallet mr-2"></i>Budget
+                    </a>
+                    <a th:href="@{/trips/{id}/accommodations(id=${trip.tripId})}"
+                        class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-hotel mr-2"></i>Accommodations
+                    </a>
+                    <a th:href="@{/trips/{id}/transportation(id=${trip.tripId})}"
+                        class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-plane mr-2"></i>Transportation
+                    </a>
+                    <a th:href="@{/trips/{id}/packing(id=${trip.tripId})}"
+                        class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-suitcase mr-2"></i>Packing
+                    </a>
+                    <a th:href="@{/trips/{id}/documents(id=${trip.tripId})}"
+                        class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-medium">
+                        <i class="fas fa-file-alt mr-2"></i>Documents
+                    </a>
+                </div>
+            </div>
+
+            <!-- Expiring Documents Alert -->
+            <div th:if="${!expiringDocuments.isEmpty()}"
+                class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-lg">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-triangle text-yellow-600 text-xl mr-3 mt-1"></i>
+                    <div>
+                        <h3 class="font-bold text-yellow-800">Documents Expiring Soon</h3>
+                        <ul class="mt-2 space-y-1">
+                            <li th:each="doc : ${expiringDocuments}" class="text-yellow-700 text-sm">
+                                <span th:text="${doc.documentName}">Document</span> -
+                                Expires: <span
+                                    th:text="${#temporals.format(doc.expiryDate, 'MMM dd, yyyy')}">Date</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents List -->
+            <div th:if="${documents.isEmpty()}" class="bg-white rounded-xl shadow-md p-12 text-center">
+                <i class="fas fa-file-alt text-6xl text-gray-300 mb-4"></i>
+                <h3 class="text-2xl font-bold text-gray-700 mb-2">No Documents Yet</h3>
+                <p class="text-gray-500 mb-6">Add important travel documents like passport, visa, tickets</p>
+                <button @click="showAddDocument = true"
+                    class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all">
+                    <i class="fas fa-plus mr-2"></i>Add First Document
+                </button>
+            </div>
+
+            <div th:if="${!documents.isEmpty()}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div th:each="document : ${documents}"
+                    class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                    <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-lg font-bold" th:text="${document.documentName}">Document</h3>
+                                <p class="text-purple-100 text-sm" th:text="${document.documentType}">Type</p>
+                            </div>
+                            <span th:if="${document.isVerified}" class="bg-green-500 px-2 py-1 rounded-full text-xs">
+                                <i class="fas fa-check mr-1"></i>Verified
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 space-y-3">
+                        <div th:if="${document.documentNumber}" class="flex items-center space-x-2">
+                            <i class="fas fa-hashtag text-gray-400"></i>
+                            <div>
+                                <p class="text-xs text-gray-500">Document Number</p>
+                                <p class="font-medium text-gray-800" th:text="${document.documentNumber}">Number</p>
+                            </div>
+                        </div>
+
+                        <div th:if="${document.issueDate}" class="flex items-center space-x-2">
+                            <i class="fas fa-calendar-check text-gray-400"></i>
+                            <div>
+                                <p class="text-xs text-gray-500">Issue Date</p>
+                                <p class="font-medium text-gray-800"
+                                    th:text="${#temporals.format(document.issueDate, 'MMM dd, yyyy')}">Date</p>
+                            </div>
+                        </div>
+
+                        <div th:if="${document.expiryDate}" class="flex items-center space-x-2">
+                            <i class="fas fa-calendar-times text-gray-400"></i>
+                            <div>
+                                <p class="text-xs text-gray-500">Expiry Date</p>
+                                <p class="font-medium"
+                                    th:classappend="${document.expiryDate.isBefore(T(java.time.LocalDate).now().plusDays(30))} ? 'text-red-600' : 'text-gray-800'"
+                                    th:text="${#temporals.format(document.expiryDate, 'MMM dd, yyyy')}">Date</p>
+                            </div>
+                        </div>
+
+                        <div th:if="${document.issuingAuthority}" class="flex items-center space-x-2">
+                            <i class="fas fa-building text-gray-400"></i>
+                            <div>
+                                <p class="text-xs text-gray-500">Issuing Authority</p>
+                                <p class="font-medium text-gray-800" th:text="${document.issuingAuthority}">Authority
+                                </p>
+                            </div>
+                        </div>
+
+                        <div th:if="${document.fileUrl}" class="border-t pt-3">
+                            <a th:href="${document.fileUrl}" target="_blank"
+                                class="text-blue-600 hover:text-blue-800 text-sm">
+                                <i class="fas fa-external-link-alt mr-1"></i>View Document
+                            </a>
+                        </div>
+
+                        <div th:if="${document.notes}" class="border-t pt-3">
+                            <p class="text-sm text-gray-600" th:text="${document.notes}">Notes</p>
+                        </div>
+
+                        <div class="flex justify-end pt-3 border-t space-x-2">
+                            <a th:href="@{/trips/{tripId}/documents/{id}/delete(tripId=${trip.tripId},id=${document.id})}"
+                                onclick="return confirm('Delete this document?')"
+                                class="text-red-600 hover:text-red-800">
+                                <i class="fas fa-trash mr-1"></i>Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Add Document Modal -->
+        <div x-show="showAddDocument" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            @click.self="showAddDocument = false">
+            <div class="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <h3 class="text-2xl font-bold mb-4">Add Travel Document</h3>
+                <form th:action="@{/trips/{id}/documents/add(id=${trip.tripId})}" method="post">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Document Name *</label>
+                            <input type="text" name="documentName" required placeholder="e.g., My Passport"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Document Type *</label>
+                            <select name="documentType" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select type</option>
+                                <option value="PASSPORT">Passport</option>
+                                <option value="VISA">Visa</option>
+                                <option value="FLIGHT_TICKET">Flight Ticket</option>
+                                <option value="TRAIN_TICKET">Train Ticket</option>
+                                <option value="BUS_TICKET">Bus Ticket</option>
+                                <option value="HOTEL_VOUCHER">Hotel Voucher</option>
+                                <option value="TRAVEL_INSURANCE">Travel Insurance</option>
+                                <option value="VACCINATION_CERTIFICATE">Vaccination Certificate</option>
+                                <option value="DRIVERS_LICENSE">Driver's License</option>
+                                <option value="INTERNATIONAL_DRIVING_PERMIT">International Driving Permit</option>
+                                <option value="TRAVEL_AUTHORIZATION">Travel Authorization</option>
+                                <option value="BOOKING_CONFIRMATION">Booking Confirmation</option>
+                                <option value="ITINERARY">Itinerary</option>
+                                <option value="EMERGENCY_CONTACT">Emergency Contact</option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Document Number</label>
+                            <input type="text" name="documentNumber"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Issue Date</label>
+                            <input type="date" name="issueDate"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                            <input type="date" name="expiryDate"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Issuing Authority</label>
+                            <input type="text" name="issuingAuthority" placeholder="e.g., Government of..."
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">File URL</label>
+                            <input type="url" name="fileUrl" placeholder="https://..."
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">Link to cloud storage (Google Drive, Dropbox, etc.)
+                            </p>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" name="isVerified" value="true"
+                                    class="rounded text-blue-600 focus:ring-2 focus:ring-blue-500">
+                                <span class="text-sm font-medium text-gray-700">Document is verified</span>
+                            </label>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                            <textarea name="notes" rows="2"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+                    </div>
+                    <div class="flex space-x-3 mt-6">
+                        <button type="submit"
+                            class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Add
+                            Document</button>
+                        <button type="button" @click="showAddDocument = false"
+                            class="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function documentsApp() {
+            return {
+                showAddDocument: false
+            }
+        }
+    </script>
+
+</body>
+
+</html>
